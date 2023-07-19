@@ -1,0 +1,29 @@
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# Folders
+_vendor/
+vendor/
+.idea/
+.vscode/
+
+# Compiled Output
+*.exe
+*.test
+*.prof
+
+# OS-specific
+*.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+
+# Go specific
+*.log
+*.test
+
+# Dependency directories (comment these out if you don't use Go Modules)
+/go.sum
+/go.mod
