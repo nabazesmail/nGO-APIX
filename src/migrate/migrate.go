@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/nabazesmail/gopher/initializers"
-	"github.com/nabazesmail/gopher/models"
+	"github.com/nabazesmail/gopher/src/initializers"
+	"github.com/nabazesmail/gopher/src/models"
 )
 
 func init() {

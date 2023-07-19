@@ -3,7 +3,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/nabazesmail/gopher/controllers"
+	"github.com/nabazesmail/gopher/src/controllers"
 )
 
 func SetupRouter() *gin.Engine {
