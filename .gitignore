@@ -27,3 +27,8 @@ Icon?
 # Dependency directories (comment these out if you don't use Go Modules)
 /go.sum
 /go.mod
+
+# Ignore system files and folders
+
+*.env
+gopher.exe~
