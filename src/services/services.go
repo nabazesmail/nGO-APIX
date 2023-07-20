@@ -4,10 +4,12 @@ package services
 import (
 	"errors"
 	"log"
+	"os"
 	"regexp"
 
 	"github.com/nabazesmail/gopher/src/models"
 	"github.com/nabazesmail/gopher/src/repository"
+	"github.com/nabazesmail/gopher/src/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -160,4 +162,32 @@ func DeleteUserByID(userID string) error {
 	}
 
 	return nil
+}
+
+func AuthenticateUser(body *models.User) (string, error) {
+	// Find the user by username in the database
+	user, err := repository.GetUserByUsername(body.Username)
+	if err != nil {
+		log.Printf("Error fetching user by username: %s", err)
+		return "", err
+	}
+
+	if user == nil {
+		return "", errors.New("user not found")
+	}
+
+	// Compare the provided password with the hashed password in the database
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password)); err != nil {
+		log.Printf("Password verification failed for user %s: %s", user.Username, err)
+		return "", errors.New("incorrect password")
+	}
+
+	// Generate a JWT token using the utils package
+	tokenString, err := utils.GenerateJWTToken(user, []byte(os.Getenv("JWT_SECRET_KEY")))
+	if err != nil {
+		log.Printf("Error generating JWT token: %s", err)
+		return "", errors.New("failed to generate JWT token")
+	}
+
+	return tokenString, nil
 }

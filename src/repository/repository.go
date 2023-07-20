@@ -48,3 +48,13 @@ func DeleteUser(user *models.User) error {
 
 	return nil
 }
+
+func GetUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	result := initializers.DB.Where("username = ?", username).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &user, nil
+}

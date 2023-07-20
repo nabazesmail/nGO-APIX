@@ -24,5 +24,8 @@ func SetupRouter() *gin.Engine {
 	// Create a route to delete a user by ID
 	r.DELETE("/users/:id", controllers.DeleteUserByID)
 
+	// Add a route for user login
+	r.POST("/login", controllers.Login)
+
 	return r
 }

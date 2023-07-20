@@ -92,3 +92,30 @@ func DeleteUserByID(c *gin.Context) {
 
 	c.JSON(200, gin.H{"message": "User deleted successfully"})
 }
+
+func Login(c *gin.Context) {
+	var body models.User
+
+	if err := c.ShouldBindJSON(&body); err != nil {
+		log.Printf("Error parsing request body: %s", err)
+		c.JSON(400, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	// Check if the username and password are provided
+	if body.Username == "" || body.Password == "" {
+		c.JSON(400, gin.H{"error": "Username and password must be provided"})
+		return
+	}
+
+	// Authenticate user using the services package
+	token, err := services.AuthenticateUser(&body)
+	if err != nil {
+		c.JSON(401, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"token": token,
+	})
+}
