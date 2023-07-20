@@ -3,6 +3,7 @@ package services
 
 import (
 	"errors"
+	"log"
 	"regexp"
 
 	"github.com/nabazesmail/gopher/src/models"
@@ -38,6 +39,7 @@ func CreateUser(body *models.User) (*models.User, error) {
 	// Hash the password using bcrypt
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
 	if err != nil {
+		log.Printf("Error hashing password: %s", err)
 		return nil, err
 	}
 
@@ -53,8 +55,109 @@ func CreateUser(body *models.User) (*models.User, error) {
 	// Save the user in the database
 	err = repository.CreateUser(user)
 	if err != nil {
+		log.Printf("Error saving user in the database: %s", err)
 		return nil, err
 	}
 
 	return user, nil
+}
+
+func GetAllUsers() ([]*models.User, error) {
+	users, err := repository.GetAllUsers()
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func GetUserByID(userID string) (*models.User, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must be provided")
+	}
+
+	user, err := repository.GetUserByID(userID)
+	if err != nil {
+		log.Printf("Error fetching user by ID: %s", err)
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func UpdateUserByID(userID string, body *models.User) (*models.User, error) {
+	if userID == "" {
+		return nil, errors.New("user ID must be provided")
+	}
+
+	user, err := repository.GetUserByID(userID)
+	if err != nil {
+		log.Printf("Error fetching user by ID: %s", err)
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, nil // User not found
+	}
+
+	// Update user fields if they are provided in the request body
+	if body.FullName != "" {
+		user.FullName = body.FullName
+	}
+
+	if body.Username != "" {
+		user.Username = body.Username
+	}
+
+	if body.Password != "" {
+		// Hash the password using bcrypt
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
+		if err != nil {
+			log.Printf("Error hashing password: %s", err)
+			return nil, err
+		}
+		user.Password = string(hashedPassword)
+	}
+
+	if body.Status != "" {
+		user.Status = body.Status
+	}
+
+	if body.Role != "" {
+		user.Role = body.Role
+	}
+
+	// Save the updated user in the database
+	err = repository.UpdateUser(user)
+	if err != nil {
+		log.Printf("Error updating user: %s", err)
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func DeleteUserByID(userID string) error {
+	if userID == "" {
+		return errors.New("user ID must be provided")
+	}
+
+	user, err := repository.GetUserByID(userID)
+	if err != nil {
+		log.Printf("Error fetching user by ID: %s", err)
+		return err
+	}
+
+	if user == nil {
+		return nil // User not found
+	}
+
+	// Delete the user from the database
+	err = repository.DeleteUser(user)
+	if err != nil {
+		log.Printf("Error deleting user: %s", err)
+		return err
+	}
+
+	return nil
 }
