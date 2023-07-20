@@ -3,6 +3,7 @@ package controllers
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nabazesmail/gopher/src/models"
@@ -117,5 +118,26 @@ func Login(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"token": token,
+	})
+}
+
+func GetUserProfile(c *gin.Context) {
+	// Extract the user from the context
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found in context"})
+		return
+	}
+
+	// Type assertion to get the user as models.User
+	u, ok := user.(*models.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user type in context"})
+		return
+	}
+
+	// Return the user's profile
+	c.JSON(http.StatusOK, gin.H{
+		"user": u,
 	})
 }

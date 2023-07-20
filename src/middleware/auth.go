@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -36,7 +37,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Verify the token using the secret key
 		claims, err := utils.VerifyJWTToken(tokenString, []byte(os.Getenv("JWT_SECRET_KEY")))
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token1"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
 		}
@@ -44,7 +45,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Extract user information from the token claims and store it in the context
 		userIDFloat, ok := claims["sub"].(float64) // Use float64 instead of uint for type assertion
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token2"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
 		}
@@ -52,7 +53,16 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Convert the userID from float64 to uint
 		userID := uint(userIDFloat)
 
-		c.Set("userID", userID)
+		// Fetch the user from the database using the userID
+		user, err := repository.GetUserByID(strconv.FormatUint(uint64(userID), 10)) // Convert uint to string
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user"})
+			c.Abort()
+			return
+		}
+
+		// Set the user in the context
+		c.Set("user", user)
 
 		c.Next()
 	}
