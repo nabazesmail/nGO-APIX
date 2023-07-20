@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -8,7 +9,7 @@ import (
 )
 
 // JWTSecretKey is your JWT secret key.
-var JWTSecretKey = []byte("your-secret-key") // Replace "your-secret-key" with your actual secret key.
+var JWTSecretKey = []byte(os.Getenv("JWT_SECRET_KEY")) // Replace "your-secret-key" with your actual secret key.
 
 // GenerateJWTToken generates a new JWT token for the provided user.
 func GenerateJWTToken(user *models.User, secretKey []byte) (string, error) {
