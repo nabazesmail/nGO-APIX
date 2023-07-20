@@ -1,5 +1,5 @@
-// migration/main.go
-package main
+// migration.go
+package migrate
 
 import (
 	"fmt"
@@ -12,12 +12,11 @@ import (
 	"github.com/nabazesmail/gopher/src/models"
 )
 
-func init() {
+func Migration() {
+	// Load environment variables and connect to the database
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDB()
-}
 
-func main() {
 	// Set up a custom logger to control the verbosity of logs during migrations
 	migrationLogger := logger.New(
 		log.New(log.Writer(), "\r\n", log.LstdFlags), // Use the same log.Writer as the default logger
@@ -34,14 +33,13 @@ func main() {
 	// Check if the User table exists in the database
 	if migrator.Migrator().HasTable(&models.User{}) {
 		fmt.Println("Database schema is up to date. No migration needed.")
-		return
-	}
+	} else {
+		// Run the auto migration for the User model
+		err := migrator.AutoMigrate(&models.User{})
+		if err != nil {
+			log.Fatalf("Failed to run auto migration: %v", err)
+		}
 
-	// Run the auto migration for the User model
-	err := migrator.AutoMigrate(&models.User{})
-	if err != nil {
-		log.Fatalf("Failed to run auto migration: %v", err)
+		fmt.Println("Database schema updated successfully.")
 	}
-
-	fmt.Println("Database schema updated successfully.")
 }
