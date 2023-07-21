@@ -2,6 +2,7 @@ package initializers
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -23,4 +24,17 @@ func InitRedis() {
 	if err != nil {
 		panic("Failed to connect to Redis: " + err.Error())
 	}
+}
+
+func ResetCache() {
+	ctx := context.Background()
+
+	// Clear all cache (flush all databases)
+	result, err := RedisClient.FlushAll(ctx).Result()
+	if err != nil {
+		log.Printf("Error resetting cache: %s", err)
+		return
+	}
+
+	log.Printf("Cache reset: %s", result)
 }

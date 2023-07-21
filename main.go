@@ -25,6 +25,8 @@ func main() {
 
 	initializers.InitRedis() // Initialize Redis
 
+	// initializers.ResetCache()  <<//remove this comment and reset the cache if needed!
+
 	r := router.SetupRouter()
 	r.Run()
 }
