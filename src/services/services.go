@@ -23,9 +23,10 @@ import (
 
 const (
 	userCachePrefix = "user:"
-	cacheExpiration = 10 * time.Minute // Cache expiration time (adjust as needed)
+	cacheExpiration = 10 * time.Minute // Cache expiration time
 )
 
+// Registering user
 func CreateUser(body *models.User) (*models.User, error) {
 	// Validate the input
 	if body.FullName == "" || body.Username == "" || body.Password == "" {
@@ -81,6 +82,7 @@ func CreateUser(body *models.User) (*models.User, error) {
 	return user, nil
 }
 
+// getting all users
 func GetAllUsers() ([]*models.User, error) {
 	users, err := repository.GetAllUsers()
 	if err != nil {
@@ -91,6 +93,7 @@ func GetAllUsers() ([]*models.User, error) {
 	return users, nil
 }
 
+// getting user by Id
 func GetUserByID(userID string) (*models.User, error) {
 	if userID == "" {
 		return nil, errors.New("user ID must be provided")
@@ -142,6 +145,7 @@ func GetUserByID(userID string) (*models.User, error) {
 	return user, nil
 }
 
+// updating user
 func UpdateUserByID(userID string, body *models.User) (*models.User, error) {
 	if userID == "" {
 		return nil, errors.New("user ID must be provided")
@@ -194,6 +198,7 @@ func UpdateUserByID(userID string, body *models.User) (*models.User, error) {
 	return user, nil
 }
 
+// deleting user
 func DeleteUserByID(userID string) error {
 	if userID == "" {
 		return errors.New("user ID must be provided")
@@ -219,6 +224,7 @@ func DeleteUserByID(userID string) error {
 	return nil
 }
 
+// authentication user
 func AuthenticateUser(body *models.User) (string, error) {
 	// Find the user by username in the database
 	user, err := repository.GetUserByUsername(body.Username)

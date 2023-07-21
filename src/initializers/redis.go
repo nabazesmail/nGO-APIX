@@ -3,6 +3,7 @@ package initializers
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -12,9 +13,9 @@ var RedisClient *redis.Client
 
 func InitRedis() {
 	RedisClient = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379", // Redis server address
-		Password: "",               // No password by default
-		DB:       0,                // Default database
+		Addr:     os.Getenv("REDIS_ADDRESS"), // Redis server address
+		Password: "",                         // No password by default
+		DB:       0,                          // Default database
 	})
 
 	// Ping the Redis server to check the connection

@@ -12,6 +12,7 @@ import (
 	"github.com/nabazesmail/gopher/src/utils"
 )
 
+// create user
 func CreateUser(c *gin.Context) {
 	var body models.User
 
@@ -34,6 +35,7 @@ func CreateUser(c *gin.Context) {
 	})
 }
 
+// user login
 func Login(c *gin.Context) {
 	var body models.User
 
@@ -61,6 +63,7 @@ func Login(c *gin.Context) {
 	})
 }
 
+// getting all users
 func GetAllUsers(c *gin.Context) {
 	users, err := services.GetAllUsers()
 	if err != nil {
@@ -71,6 +74,7 @@ func GetAllUsers(c *gin.Context) {
 	c.JSON(200, gin.H{"users": users})
 }
 
+// getting one user by Id
 func GetUserByID(c *gin.Context) {
 	userID := c.Param("id")
 
@@ -88,6 +92,7 @@ func GetUserByID(c *gin.Context) {
 	c.JSON(200, gin.H{"user": user})
 }
 
+// updating user
 func UpdateUserByID(c *gin.Context) {
 	userID := c.Param("id")
 
@@ -111,6 +116,7 @@ func UpdateUserByID(c *gin.Context) {
 	c.JSON(200, gin.H{"user": user})
 }
 
+// deleting user
 func DeleteUserByID(c *gin.Context) {
 	userID := c.Param("id")
 
@@ -123,6 +129,7 @@ func DeleteUserByID(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "User deleted successfully"})
 }
 
+// getting user profile only with token
 func GetUserProfile(c *gin.Context) {
 	// Extract the user from the context
 	user, exists := c.Get("user")
@@ -153,6 +160,7 @@ func GetUserProfile(c *gin.Context) {
 	})
 }
 
+// uploading profile pic
 func UploadProfilePicture(c *gin.Context) {
 	userID := c.Param("id")
 
@@ -180,6 +188,7 @@ func UploadProfilePicture(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
+// fetching profile pic
 func GetProfilePicture(c *gin.Context) {
 	userID := c.Param("id")
 

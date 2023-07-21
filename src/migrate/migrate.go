@@ -17,7 +17,7 @@ func Migration() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDB()
 
-	// Set up a custom logger to control the verbosity of logs during migrations
+	// Setting up a custom logger to control the verbosity of logs during migrations
 	migrationLogger := logger.New(
 		log.New(log.Writer(), "\r\n", log.LstdFlags), // Use the same log.Writer as the default logger
 		logger.Config{
@@ -26,15 +26,15 @@ func Migration() {
 		},
 	)
 
-	// Create a new gorm.DB instance with the custom logger
+	//  a new gorm.DB instance with the custom logger
 	migrator := initializers.DB.WithContext(initializers.DB.Statement.Context)
 	migrator.Logger = migrationLogger
 
-	// Check if the User table exists in the database
+	// this Checks if the User table exists in the database
 	if migrator.Migrator().HasTable(&models.User{}) {
 		fmt.Println("Database schema is up to date. No migration needed.")
 	} else {
-		// Run the auto migration for the User model
+		// this Runs the auto migration for the User model
 		err := migrator.AutoMigrate(&models.User{})
 		if err != nil {
 			log.Fatalf("Failed to run auto migration: %v", err)

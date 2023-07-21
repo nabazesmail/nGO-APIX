@@ -11,9 +11,9 @@ import (
 // JWTSecretKey is your JWT secret key.
 var JWTSecretKey = []byte(os.Getenv("JWT_SECRET_KEY"))
 
-// GenerateJWTToken generates a new JWT token for the provided user.
+// this generates a new JWT token for the provided user.
 func GenerateJWTToken(user *models.User, secretKey []byte) (string, error) {
-	// Create a new token with the user's ID as the subject (sub) claim.
+	// a new token with the user's ID as the subject (sub) claim.
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.ID,
 		// You can add more user information to the token as needed.
