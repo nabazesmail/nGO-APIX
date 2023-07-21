@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nabazesmail/gopher/src/models"
 	"github.com/nabazesmail/gopher/src/services"
+	"github.com/nabazesmail/gopher/src/utils"
 )
 
 func CreateUser(c *gin.Context) {
@@ -136,8 +137,17 @@ func GetUserProfile(c *gin.Context) {
 		return
 	}
 
+	// Create a UserResponse struct without the password field
+	userResponse := utils.UserResponse{
+		ID:       u.ID,
+		FullName: u.FullName,
+		Username: u.Username,
+		Status:   string(u.Status),
+		Role:     string(u.Role),
+	}
+
 	// Return the user's profile
 	c.JSON(http.StatusOK, gin.H{
-		"user": u,
+		"user": userResponse,
 	})
 }

@@ -9,7 +9,7 @@ import (
 )
 
 // JWTSecretKey is your JWT secret key.
-var JWTSecretKey = []byte(os.Getenv("JWT_SECRET_KEY")) // Replace "your-secret-key" with your actual secret key.
+var JWTSecretKey = []byte(os.Getenv("JWT_SECRET_KEY"))
 
 // GenerateJWTToken generates a new JWT token for the provided user.
 func GenerateJWTToken(user *models.User, secretKey []byte) (string, error) {
@@ -53,4 +53,13 @@ func VerifyJWTToken(tokenString string, secretKey []byte) (jwt.MapClaims, error)
 	}
 
 	return nil, jwt.ErrSignatureInvalid
+}
+
+// UserResponse represents the user information to be returned in the API response
+type UserResponse struct {
+	ID       uint   `json:"id"`
+	FullName string `json:"fullName"`
+	Username string `json:"username"`
+	Status   string `json:"status"`
+	Role     string `json:"role"`
 }
