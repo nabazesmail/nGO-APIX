@@ -33,6 +33,33 @@ func CreateUser(c *gin.Context) {
 	})
 }
 
+func Login(c *gin.Context) {
+	var body models.User
+
+	if err := c.ShouldBindJSON(&body); err != nil {
+		log.Printf("Error parsing request body: %s", err)
+		c.JSON(400, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	// Check if the username and password are provided
+	if body.Username == "" || body.Password == "" {
+		c.JSON(400, gin.H{"error": "Username and password must be provided"})
+		return
+	}
+
+	// Authenticate user using the services package
+	token, err := services.AuthenticateUser(&body)
+	if err != nil {
+		c.JSON(401, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"token": token,
+	})
+}
+
 func GetAllUsers(c *gin.Context) {
 	users, err := services.GetAllUsers()
 	if err != nil {
@@ -95,33 +122,6 @@ func DeleteUserByID(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "User deleted successfully"})
 }
 
-func Login(c *gin.Context) {
-	var body models.User
-
-	if err := c.ShouldBindJSON(&body); err != nil {
-		log.Printf("Error parsing request body: %s", err)
-		c.JSON(400, gin.H{"error": "Invalid request body"})
-		return
-	}
-
-	// Check if the username and password are provided
-	if body.Username == "" || body.Password == "" {
-		c.JSON(400, gin.H{"error": "Username and password must be provided"})
-		return
-	}
-
-	// Authenticate user using the services package
-	token, err := services.AuthenticateUser(&body)
-	if err != nil {
-		c.JSON(401, gin.H{"error": "User not authenticated"})
-		return
-	}
-
-	c.JSON(200, gin.H{
-		"token": token,
-	})
-}
-
 func GetUserProfile(c *gin.Context) {
 	// Extract the user from the context
 	user, exists := c.Get("user")
@@ -177,4 +177,34 @@ func UploadProfilePicture(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"user": user})
+}
+
+func GetProfilePicture(c *gin.Context) {
+	userID := c.Param("id")
+
+	// Retrieve the user's profile picture data using the services package
+	data, err := services.GetProfilePictureByID(userID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to fetch profile picture"})
+		return
+	}
+
+	if data == nil {
+		c.JSON(404, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Determine the content type based on the file extension
+	contentType := http.DetectContentType(data)
+
+	// Set the appropriate Content-Type header for image preview
+	c.Header("Content-Type", contentType)
+
+	// Copy the profile picture data to the response body for previewing the profile picture
+	_, err = c.Writer.Write(data)
+	if err != nil {
+		log.Printf("Error copying profile picture data: %s", err)
+		c.JSON(500, gin.H{"error": "Failed to retrieve profile picture"})
+		return
+	}
 }

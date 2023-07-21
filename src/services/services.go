@@ -4,6 +4,7 @@ package services
 import (
 	"errors"
 	"io"
+	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"os"
@@ -196,6 +197,7 @@ func AuthenticateUser(body *models.User) (string, error) {
 	return tokenString, nil
 }
 
+// UpdateUserProfilePicture updates the user's profile picture.
 func UpdateUserProfilePicture(userID string, fileHeader *multipart.FileHeader) (*models.User, error) {
 	// Find the user by ID in the database
 	user, err := repository.GetUserByID(userID)
@@ -213,11 +215,8 @@ func UpdateUserProfilePicture(userID string, fileHeader *multipart.FileHeader) (
 		return nil, errors.New("invalid file format, only images are allowed")
 	}
 
-	// Create a unique filename for the uploaded image
-	filename := initializers.GenerateUniqueFilename(fileHeader)
-
-	// Create the file path for storing the uploaded image
-	filePath := filepath.Join("src/public/uploads", filename)
+	// Create the file path for storing the uploaded image with the original filename
+	filePath := filepath.Join("src/public/uploads", fileHeader.Filename)
 
 	// Open the uploaded file
 	file, err := fileHeader.Open()
@@ -250,4 +249,71 @@ func UpdateUserProfilePicture(userID string, fileHeader *multipart.FileHeader) (
 	}
 
 	return user, nil
+}
+
+// GetProfilePictureByID retrieves the user's profile picture by ID.
+func GetProfilePictureByID(userID string) ([]byte, error) {
+	// Find the user by ID in the database
+	user, err := repository.GetUserByID(userID)
+	if err != nil {
+		log.Printf("Error fetching user by ID: %s", err)
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, nil // User not found
+	}
+
+	// Get the current working directory
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Printf("Error getting current working directory: %s", err)
+		return nil, err
+	}
+
+	// Get the absolute file path for the user's profile picture
+	absoluteFilePath := filepath.Join(wd, "src/public/uploads", user.ProfilePicture)
+
+	// Open the file
+	file, err := os.Open(absoluteFilePath)
+	if err != nil {
+		log.Printf("Error opening profile picture file: %s", err)
+		return nil, err
+	}
+	defer file.Close()
+
+	// Read the file data
+	data, err := io.ReadAll(file)
+	if err != nil {
+		log.Printf("Error reading profile picture data: %s", err)
+		return nil, err
+	}
+
+	return data, nil
+}
+
+// PreviewProfilePicture fetches the binary data of the user's profile picture.
+func PreviewProfilePicture(userID string) ([]byte, error) {
+	// Find the user by ID in the database
+	user, err := repository.GetUserByID(userID)
+	if err != nil {
+		log.Printf("Error fetching user by ID: %s", err)
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, nil // User not found
+	}
+
+	// Construct the file path for the user's profile picture
+	filePath := filepath.Join("src/public/uploads", user.ProfilePicture)
+
+	// Read the file data
+	fileData, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		log.Printf("Error reading profile picture file: %s", err)
+		return nil, err
+	}
+
+	return fileData, nil
 }
