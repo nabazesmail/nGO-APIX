@@ -2,6 +2,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"io"
 	"log"
@@ -9,13 +10,20 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"time"
 
+	"github.com/go-redis/redis"
 	"github.com/nabazesmail/gopher/src/initializers"
 	"github.com/nabazesmail/gopher/src/middleware"
 	"github.com/nabazesmail/gopher/src/models"
 	"github.com/nabazesmail/gopher/src/repository"
 	"github.com/nabazesmail/gopher/src/utils"
 	"golang.org/x/crypto/bcrypt"
+)
+
+const (
+	userCachePrefix = "user:"
+	cacheExpiration = 10 * time.Minute // Cache expiration time (adjust as needed)
 )
 
 func CreateUser(body *models.User) (*models.User, error) {
@@ -85,14 +93,50 @@ func GetAllUsers() ([]*models.User, error) {
 
 func GetUserByID(userID string) (*models.User, error) {
 	if userID == "" {
-
 		return nil, errors.New("user ID must be provided")
 	}
 
+	// Check if the user is cached in Redis
+	ctx := context.Background()
+	cacheKey := userCachePrefix + userID
+	cachedUser, err := initializers.RedisClient.Get(ctx, cacheKey).Result()
+	if err == nil {
+		// User found in cache, deserialize and return
+		user, err := models.DeserializeUser(cachedUser)
+		if err != nil {
+			log.Printf("Error deserializing user data from cache: %s", err)
+			// Proceed to fetch from the database
+		} else {
+			log.Printf("User with ID %s fetched from cache.", userID)
+			return user, nil
+		}
+	} else if err != redis.Nil {
+		log.Printf("Error fetching user from cache: %s", err)
+		// Proceed to fetch from the database
+	}
+
+	// User not found in cache, fetch from the database
 	user, err := repository.GetUserByID(userID)
 	if err != nil {
-		middleware.Logger.Printf("Error fetching user by ID: %s", err)
+		log.Printf("Error fetching user by ID: %s", err)
 		return nil, err
+	}
+
+	if user == nil {
+		return nil, nil // User not found
+	}
+
+	// Cache the user data in Redis
+	serializedUser, err := user.Serialize()
+	if err != nil {
+		log.Printf("Error serializing user data for cache: %s", err)
+	} else {
+		_, err = initializers.RedisClient.Set(ctx, cacheKey, serializedUser, cacheExpiration).Result()
+		if err != nil {
+			log.Printf("Error caching user data: %s", err)
+		} else {
+			log.Printf("User with ID %s cached successfully.", userID)
+		}
 	}
 
 	return user, nil
