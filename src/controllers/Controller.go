@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/nabazesmail/gopher/src/middleware"
 	"github.com/nabazesmail/gopher/src/models"
 	"github.com/nabazesmail/gopher/src/services"
 	"github.com/nabazesmail/gopher/src/utils"
@@ -15,7 +16,7 @@ func CreateUser(c *gin.Context) {
 	var body models.User
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		log.Printf("Error parsing request body: %s", err)
+		middleware.Logger.Printf("Error parsing request body: %s", err)
 		c.JSON(400, gin.H{"error": "Invalid request body"})
 		return
 	}
@@ -23,7 +24,7 @@ func CreateUser(c *gin.Context) {
 	// Create the user using the services package
 	user, err := services.CreateUser(&body)
 	if err != nil {
-		log.Printf("Error creating user: %s", err)
+		middleware.Logger.Printf("Error creating user: %s", err)
 		c.JSON(500, gin.H{"error": "Internal server error"})
 		return
 	}
@@ -37,7 +38,7 @@ func Login(c *gin.Context) {
 	var body models.User
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		log.Printf("Error parsing request body: %s", err)
+		middleware.Logger.Printf("Error parsing request body: %s", err)
 		c.JSON(400, gin.H{"error": "Invalid request body"})
 		return
 	}
@@ -203,7 +204,7 @@ func GetProfilePicture(c *gin.Context) {
 	// Copy the profile picture data to the response body for previewing the profile picture
 	_, err = c.Writer.Write(data)
 	if err != nil {
-		log.Printf("Error copying profile picture data: %s", err)
+		middleware.Logger.Printf("Error copying profile picture data: %s", err)
 		c.JSON(500, gin.H{"error": "Failed to retrieve profile picture"})
 		return
 	}

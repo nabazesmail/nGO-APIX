@@ -11,6 +11,7 @@ import (
 	"regexp"
 
 	"github.com/nabazesmail/gopher/src/initializers"
+	"github.com/nabazesmail/gopher/src/middleware"
 	"github.com/nabazesmail/gopher/src/models"
 	"github.com/nabazesmail/gopher/src/repository"
 	"github.com/nabazesmail/gopher/src/utils"
@@ -26,26 +27,30 @@ func CreateUser(body *models.User) (*models.User, error) {
 	// Validate username using regex (allow only characters)
 	usernameRegex := regexp.MustCompile("^[a-zA-Z]+$")
 	if !usernameRegex.MatchString(body.Username) {
+		middleware.Logger.Printf("username must contain only characters")
 		return nil, errors.New("username must contain only characters")
 	}
 
 	if len(body.Password) < 8 || len(body.Password) > 15 {
+		middleware.Logger.Printf("password must be between 8 and 15 characters")
 		return nil, errors.New("password must be between 8 and 15 characters")
 	}
 
 	// Validate status and role (if provided)
 	if body.Status != models.Active && body.Status != models.Inactive {
+		middleware.Logger.Printf("invalid status value")
 		return nil, errors.New("invalid status value")
 	}
 
 	if body.Role != models.Admin && body.Role != models.Operator {
+		middleware.Logger.Printf("invalid Role value")
 		return nil, errors.New("invalid role value")
 	}
 
 	// Hash the password using bcrypt
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Printf("Error hashing password: %s", err)
+		middleware.Logger.Printf("Error hashing password: %s", err)
 		return nil, err
 	}
 
@@ -61,7 +66,7 @@ func CreateUser(body *models.User) (*models.User, error) {
 	// Save the user in the database
 	err = repository.CreateUser(user)
 	if err != nil {
-		log.Printf("Error saving user in the database: %s", err)
+		middleware.Logger.Printf("Error saving user in the database: %s", err)
 		return nil, err
 	}
 
@@ -71,6 +76,7 @@ func CreateUser(body *models.User) (*models.User, error) {
 func GetAllUsers() ([]*models.User, error) {
 	users, err := repository.GetAllUsers()
 	if err != nil {
+		middleware.Logger.Printf("Error retrieving users from the database: %s", err)
 		return nil, err
 	}
 
@@ -79,12 +85,13 @@ func GetAllUsers() ([]*models.User, error) {
 
 func GetUserByID(userID string) (*models.User, error) {
 	if userID == "" {
+
 		return nil, errors.New("user ID must be provided")
 	}
 
 	user, err := repository.GetUserByID(userID)
 	if err != nil {
-		log.Printf("Error fetching user by ID: %s", err)
+		middleware.Logger.Printf("Error fetching user by ID: %s", err)
 		return nil, err
 	}
 
@@ -98,7 +105,7 @@ func UpdateUserByID(userID string, body *models.User) (*models.User, error) {
 
 	user, err := repository.GetUserByID(userID)
 	if err != nil {
-		log.Printf("Error fetching user by ID: %s", err)
+		middleware.Logger.Printf("Error fetching user by ID: %s", err)
 		return nil, err
 	}
 
@@ -172,7 +179,7 @@ func AuthenticateUser(body *models.User) (string, error) {
 	// Find the user by username in the database
 	user, err := repository.GetUserByUsername(body.Username)
 	if err != nil {
-		log.Printf("Error fetching user by username: %s", err)
+		middleware.Logger.Printf("Error fetching user by username: %s", err)
 		return "", err
 	}
 
@@ -201,7 +208,7 @@ func UpdateUserProfilePicture(userID string, fileHeader *multipart.FileHeader) (
 	// Find the user by ID in the database
 	user, err := repository.GetUserByID(userID)
 	if err != nil {
-		log.Printf("Error fetching user by ID: %s", err)
+		middleware.Logger.Printf("Error fetching user by ID: %s", err)
 		return nil, err
 	}
 
@@ -220,7 +227,7 @@ func UpdateUserProfilePicture(userID string, fileHeader *multipart.FileHeader) (
 	// Open the uploaded file
 	file, err := fileHeader.Open()
 	if err != nil {
-		log.Printf("Error opening uploaded file: %s", err)
+		middleware.Logger.Printf("Error opening uploaded file: %s", err)
 		return nil, err
 	}
 	defer file.Close()
@@ -228,7 +235,7 @@ func UpdateUserProfilePicture(userID string, fileHeader *multipart.FileHeader) (
 	// Create the destination file
 	dst, err := os.Create(filePath)
 	if err != nil {
-		log.Printf("Error creating destination file: %s", err)
+		middleware.Logger.Printf("Error creating destination file: %s", err)
 		return nil, err
 	}
 	defer dst.Close()
@@ -236,14 +243,14 @@ func UpdateUserProfilePicture(userID string, fileHeader *multipart.FileHeader) (
 	// Copy the file data to the destination file
 	_, err = io.Copy(dst, file)
 	if err != nil {
-		log.Printf("Error copying file data: %s", err)
+		middleware.Logger.Printf("Error copying file data: %s", err)
 		return nil, err
 	}
 
 	// Update the user's profile picture URL in the database with the original filename
 	user.ProfilePicture = fileHeader.Filename
 	if err := repository.UpdateUser(user); err != nil {
-		log.Printf("Error updating user's profile picture: %s", err)
+		middleware.Logger.Printf("Error updating user's profile picture: %s", err)
 		return nil, err
 	}
 
@@ -255,7 +262,7 @@ func GetProfilePictureByID(userID string) ([]byte, error) {
 	// Find the user by ID in the database
 	user, err := repository.GetUserByID(userID)
 	if err != nil {
-		log.Printf("Error fetching user by ID: %s", err)
+		middleware.Logger.Printf("Error fetching user by ID: %s", err)
 		return nil, err
 	}
 
@@ -266,7 +273,7 @@ func GetProfilePictureByID(userID string) ([]byte, error) {
 	// Get the current working directory
 	wd, err := os.Getwd()
 	if err != nil {
-		log.Printf("Error getting current working directory: %s", err)
+		middleware.Logger.Printf("Error getting current working directory: %s", err)
 		return nil, err
 	}
 
@@ -276,7 +283,7 @@ func GetProfilePictureByID(userID string) ([]byte, error) {
 	// Open the file
 	file, err := os.Open(absoluteFilePath)
 	if err != nil {
-		log.Printf("Error opening profile picture file: %s", err)
+		middleware.Logger.Printf("Error opening profile picture file: %s", err)
 		return nil, err
 	}
 	defer file.Close()
@@ -284,7 +291,7 @@ func GetProfilePictureByID(userID string) ([]byte, error) {
 	// Read the file data
 	data, err := io.ReadAll(file)
 	if err != nil {
-		log.Printf("Error reading profile picture data: %s", err)
+		middleware.Logger.Printf("Error reading profile picture data: %s", err)
 		return nil, err
 	}
 
@@ -296,7 +303,7 @@ func PreviewProfilePicture(userID string) ([]byte, error) {
 	// Find the user by ID in the database
 	user, err := repository.GetUserByID(userID)
 	if err != nil {
-		log.Printf("Error fetching user by ID: %s", err)
+		middleware.Logger.Printf("Error fetching user by ID: %s", err)
 		return nil, err
 	}
 
@@ -310,7 +317,7 @@ func PreviewProfilePicture(userID string) ([]byte, error) {
 	// Read the file data
 	fileData, err := os.ReadFile(filePath)
 	if err != nil {
-		log.Printf("Error reading profile picture file: %s", err)
+		middleware.Logger.Printf("Error reading profile picture file: %s", err)
 		return nil, err
 	}
 

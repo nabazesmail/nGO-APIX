@@ -1,4 +1,3 @@
-// initializers/redis.go
 package initializers
 
 import (

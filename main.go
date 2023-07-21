@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/nabazesmail/gopher/src/initializers"
 	"github.com/nabazesmail/gopher/src/migrate"
 	"github.com/nabazesmail/gopher/src/router"
 )
@@ -17,14 +16,11 @@ func init() {
 }
 
 func main() {
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Fatal("Error getting current working directory:", err)
 	}
 	fmt.Println("Current working directory:", cwd)
-
-	initializers.InitRedis()
 
 	r := router.SetupRouter()
 	r.Run()
