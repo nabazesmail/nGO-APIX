@@ -151,3 +151,30 @@ func GetUserProfile(c *gin.Context) {
 		"user": userResponse,
 	})
 }
+
+func UploadProfilePicture(c *gin.Context) {
+	userID := c.Param("id")
+
+	// Check if the request contains a file with the key "profile_picture"
+	file, fileHeader, err := c.Request.FormFile("profile_picture")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing file in the request"})
+		return
+	}
+	defer file.Close()
+
+	// Update the user's profile picture
+	user, err := services.UpdateUserProfilePicture(userID, fileHeader)
+	if err != nil {
+		log.Printf("Error updating user's profile picture: %s", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile picture"})
+		return
+	}
+
+	if user == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user": user})
+}

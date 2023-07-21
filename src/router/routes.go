@@ -13,7 +13,7 @@ func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
 	//  a route to create a new user
-	r.POST("/users", controllers.CreateUser)
+	r.POST("/register", controllers.CreateUser)
 
 	//  a route to login the user
 	r.POST("/login", controllers.Login)
@@ -37,5 +37,7 @@ func SetupRouter() *gin.Engine {
 	// Create a route to get the user's profile (protected route)
 	protectedRoutes.GET("/profile", middleware.CheckAccess(models.Operator), controllers.GetUserProfile)
 
+	// Create a route to handle file uploads and update user profile picture
+	protectedRoutes.POST("/imgUpload/:id", middleware.CheckAccess(models.Admin), controllers.UploadProfilePicture)
 	return r
 }

@@ -3,9 +3,16 @@ package services
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"log"
+	"math/rand"
+	"mime/multipart"
 	"os"
+	"path/filepath"
 	"regexp"
+	"strings"
+	"time"
 
 	"github.com/nabazesmail/gopher/src/models"
 	"github.com/nabazesmail/gopher/src/repository"
@@ -190,4 +197,75 @@ func AuthenticateUser(body *models.User) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func UpdateUserProfilePicture(userID string, fileHeader *multipart.FileHeader) (*models.User, error) {
+	// Find the user by ID in the database
+	user, err := repository.GetUserByID(userID)
+	if err != nil {
+		log.Printf("Error fetching user by ID: %s", err)
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, nil // User not found
+	}
+
+	// Check if the uploaded file is an image
+	if !isImageFile(fileHeader) {
+		return nil, errors.New("invalid file format, only images are allowed")
+	}
+
+	// Create a unique filename for the uploaded image
+	filename := generateUniqueFilename(fileHeader)
+
+	// Create the file path for storing the uploaded image
+	filePath := filepath.Join("public/uploads", filename)
+
+	// Open the uploaded file
+	file, err := fileHeader.Open()
+	if err != nil {
+		log.Printf("Error opening uploaded file: %s", err)
+		return nil, err
+	}
+	defer file.Close()
+
+	// Create the destination file
+	dst, err := os.Create(filePath)
+	if err != nil {
+		log.Printf("Error creating destination file: %s", err)
+		return nil, err
+	}
+	defer dst.Close()
+
+	// Copy the file data to the destination file
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		log.Printf("Error copying file data: %s", err)
+		return nil, err
+	}
+
+	// Update the user's profile picture URL in the database with the original filename
+	user.ProfilePicture = fileHeader.Filename
+	if err := repository.UpdateUser(user); err != nil {
+		log.Printf("Error updating user's profile picture: %s", err)
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// Helper function to check if the uploaded file is an image
+func isImageFile(fileHeader *multipart.FileHeader) bool {
+	// Extract the file extension from the uploaded file's header
+	ext := filepath.Ext(fileHeader.Filename)
+	ext = strings.ToLower(ext)
+	return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif"
+}
+
+// Helper function to generate a unique filename for the uploaded image
+func generateUniqueFilename(fileHeader *multipart.FileHeader) string {
+	ext := filepath.Ext(fileHeader.Filename)
+	// Create a unique filename using the original filename, timestamp, and a random number
+	return fmt.Sprintf("%s_%d%d%s", strings.TrimSuffix(fileHeader.Filename, ext), time.Now().UnixNano(), rand.Intn(10000), ext)
 }
