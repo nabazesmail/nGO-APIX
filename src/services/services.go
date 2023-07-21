@@ -4,7 +4,6 @@ package services
 import (
 	"errors"
 	"io"
-	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"os"
@@ -309,7 +308,7 @@ func PreviewProfilePicture(userID string) ([]byte, error) {
 	filePath := filepath.Join("src/public/uploads", user.ProfilePicture)
 
 	// Read the file data
-	fileData, err := ioutil.ReadFile(filePath)
+	fileData, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Printf("Error reading profile picture file: %s", err)
 		return nil, err
