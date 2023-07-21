@@ -217,7 +217,7 @@ func UpdateUserProfilePicture(userID string, fileHeader *multipart.FileHeader) (
 	filename := initializers.GenerateUniqueFilename(fileHeader)
 
 	// Create the file path for storing the uploaded image
-	filePath := filepath.Join("public/uploads", filename)
+	filePath := filepath.Join("src/public/uploads", filename)
 
 	// Open the uploaded file
 	file, err := fileHeader.Open()
