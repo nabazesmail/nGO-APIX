@@ -38,7 +38,7 @@ func SetupRouter() *gin.Engine {
 	protectedRoutes.GET("/profile", middleware.CheckAccess(models.Operator), controllers.GetUserProfile)
 
 	//  a route to handle file uploads and update user profile picture
-	protectedRoutes.POST("/imgUpload/:id", middleware.CheckAccess(models.Admin), controllers.UploadProfilePicture)
+	protectedRoutes.POST("/imgUpload/:id", middleware.CheckAccess(models.Operator), controllers.UploadProfilePicture)
 
 	// a route to get and preview the user's profile picture by ID
 	protectedRoutes.GET("/users/:id/profile_picture", middleware.CheckAccess(models.Operator), controllers.GetProfilePicture)
