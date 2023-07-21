@@ -32,3 +32,6 @@ Icon?
 
 *.env
 gopher.exe~
+
+# Ignore the public/uploads folder
+public/uploads/

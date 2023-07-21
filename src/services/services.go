@@ -3,17 +3,14 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
-	"time"
 
+	"github.com/nabazesmail/gopher/src/initializers"
 	"github.com/nabazesmail/gopher/src/models"
 	"github.com/nabazesmail/gopher/src/repository"
 	"github.com/nabazesmail/gopher/src/utils"
@@ -212,12 +209,12 @@ func UpdateUserProfilePicture(userID string, fileHeader *multipart.FileHeader) (
 	}
 
 	// Check if the uploaded file is an image
-	if !isImageFile(fileHeader) {
+	if !initializers.IsImageFile(fileHeader) {
 		return nil, errors.New("invalid file format, only images are allowed")
 	}
 
 	// Create a unique filename for the uploaded image
-	filename := generateUniqueFilename(fileHeader)
+	filename := initializers.GenerateUniqueFilename(fileHeader)
 
 	// Create the file path for storing the uploaded image
 	filePath := filepath.Join("public/uploads", filename)
@@ -253,19 +250,4 @@ func UpdateUserProfilePicture(userID string, fileHeader *multipart.FileHeader) (
 	}
 
 	return user, nil
-}
-
-// Helper function to check if the uploaded file is an image
-func isImageFile(fileHeader *multipart.FileHeader) bool {
-	// Extract the file extension from the uploaded file's header
-	ext := filepath.Ext(fileHeader.Filename)
-	ext = strings.ToLower(ext)
-	return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif"
-}
-
-// Helper function to generate a unique filename for the uploaded image
-func generateUniqueFilename(fileHeader *multipart.FileHeader) string {
-	ext := filepath.Ext(fileHeader.Filename)
-	// Create a unique filename using the original filename, timestamp, and a random number
-	return fmt.Sprintf("%s_%d%d%s", strings.TrimSuffix(fileHeader.Filename, ext), time.Now().UnixNano(), rand.Intn(10000), ext)
 }
